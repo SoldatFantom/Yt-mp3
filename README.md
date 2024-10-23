@@ -13,3 +13,4 @@ pip install -r dependance.txt
 pyinstaller --onefile yt-mp3.py
 sudo chmod +x install.sh
 sudo ./install.sh
+deactivate

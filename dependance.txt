@@ -1,0 +1,5 @@
+python3 -m venv path/to/venv
+source path/to/venv/bin/activate
+pip install yt-dlp
+pip install pydub
+pip install pyinstaller

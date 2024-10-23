@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk, scrolledtext
 import yt_dlp
-from pydub import AudioSegment
 import os
 import threading
 
@@ -46,7 +45,7 @@ def update_log_console(message):
 def show_messagebox(title, message):
     messagebox.showinfo(title, message)
 
-def download_and_convert_to_mp3():
+def download_mp3():
     url = url_entry.get()
     download_folder = folder_entry.get()
 
@@ -56,12 +55,15 @@ def download_and_convert_to_mp3():
 
     download_progress_bar["value"] = 0
     download_progress_bar["maximum"] = 100
-    conversion_progress_bar["value"] = 0
-    conversion_progress_bar["maximum"] = 100
 
     def run_download():
         options = {
             'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
             'outtmpl': f'{download_folder}/%(title)s.%(ext)s',
             'progress_hooks': [hook]
         }
@@ -77,39 +79,21 @@ def download_and_convert_to_mp3():
                 root.after(0, update_log_console, f"Nom de la musique : {title}\n")
                 root.after(0, update_log_console, "Téléchargement en cours...\n")
 
-                # Télécharger la vidéo
+                # Télécharger la vidéo directement en MP3
                 ydl.download([url])
         except Exception as e:
             root.after(0, update_log_console, f"Erreur lors du téléchargement: {str(e)}\n")
             return
 
-        webm_filepath = os.path.join(download_folder, f'{title}.webm')
         mp3_filepath = os.path.join(download_folder, f'{title}.mp3')
 
-        try:
-            audio = AudioSegment.from_file(webm_filepath, format="webm")
-            root.after(0, update_log_console, f"Conversion en MP3 en cours: {mp3_filepath}\n")
+        if not os.path.exists(mp3_filepath):
+            root.after(0, update_log_console, "Erreur: Fichier téléchargé non trouvé.\n")
+            return
 
-            # Conversion segmentée et mise à jour de la barre de progression
-            segment_duration_ms = 1000  # Segment de 1 seconde
-            total_duration_ms = len(audio)  # Durée totale en millisecondes
-            progress_step = 100 / (total_duration_ms // segment_duration_ms)
+        root.after(0, update_log_console, f"Téléchargement terminé.\nDébut de l'extraction audio....\n")
 
-            converted_audio = AudioSegment.silent(duration=0)
-            for start in range(0, total_duration_ms, segment_duration_ms):
-                end = min(start + segment_duration_ms, total_duration_ms)
-                segment = audio[start:end]
-                converted_audio += segment
-
-                conversion_progress_bar["value"] += progress_step
-                root.update_idletasks()  # Mise à jour de l'interface
-
-            converted_audio.export(mp3_filepath, format="mp3")
-            os.remove(webm_filepath)
-            root.after(0, update_log_console, f"Conversion en MP3 terminée: {mp3_filepath}\n")
-            root.after(0, show_messagebox, "Succès", f"Conversion terminée.\nFichier MP3 sauvegardé à : {mp3_filepath}")
-        except Exception as e:
-            root.after(0, update_log_console, f"Erreur lors de la conversion en MP3: {str(e)}\n")
+        root.after(0, show_messagebox, "Succès", f"Fichier MP3 sauvegardé à : {mp3_filepath}")
 
     def hook(d):
         if d['status'] == 'downloading':
@@ -118,7 +102,7 @@ def download_and_convert_to_mp3():
             root.update_idletasks()
 
         if d['status'] == 'finished':
-            root.after(0, update_log_console, "Téléchargement terminé.\n")
+            root.after(0, update_log_console, f"Téléchargement terminé.\nDébut de l'extraction audio....\n")
 
     threading.Thread(target=run_download).start()
 
@@ -147,7 +131,7 @@ folder_entry.grid(row=0, column=1, padx=5)
 folder_button = tk.Button(folder_frame, text="Parcourir", command=browse_folder)
 folder_button.grid(row=0, column=2)
 
-download_button = tk.Button(root, text="Télécharger et Convertir en MP3", command=download_and_convert_to_mp3)
+download_button = tk.Button(root, text="Télécharger en MP3", command=download_mp3)
 download_button.pack()
 
 # Barre de progression pour le téléchargement
@@ -155,12 +139,6 @@ download_progress_bar = ttk.Progressbar(root, length=300, mode='determinate')
 download_progress_bar.pack(pady=5)
 download_label = tk.Label(root, text="Téléchargement")
 download_label.pack()
-
-# Barre de progression pour la conversion
-conversion_progress_bar = ttk.Progressbar(root, length=300, mode='determinate')
-conversion_progress_bar.pack(pady=5)
-conversion_label = tk.Label(root, text="Conversion")
-conversion_label.pack()
 
 log_console = scrolledtext.ScrolledText(root, height=10, width=60, bg="black", fg="white")
 log_console.pack(pady=10)

@@ -6,6 +6,13 @@ from pydub import AudioSegment
 import os
 import threading
 
+def browse_folder():
+    initial_dir = os.path.expanduser("~")  # Chemin par défaut au dossier utilisateur
+    selected_folder = filedialog.askdirectory(initialdir=initial_dir)
+    if selected_folder:  # Si un dossier est sélectionné
+        folder_entry.delete(0, tk.END)  # Efface l'ancienne entrée
+        folder_entry.insert(0, selected_folder)  # Insère le nouveau chemin
+
 def download_and_convert_to_mp3():
     url = url_entry.get()
     if not url:
@@ -89,7 +96,7 @@ folder_label.grid(row=0, column=0)
 folder_entry = tk.Entry(folder_frame, width=30)  # On diminue la largeur de l'entrée pour laisser de la place au bouton
 folder_entry.grid(row=0, column=1, padx=5)
 
-folder_button = tk.Button(folder_frame, text="Parcourir", command=lambda: folder_entry.insert(0, filedialog.askdirectory()))
+folder_button = tk.Button(folder_frame, text="Parcourir", command=browse_folder)
 folder_button.grid(row=0, column=2)
 
 download_button = tk.Button(root, text="Télécharger et Convertir en MP3", command=download_and_convert_to_mp3)

@@ -14,3 +14,5 @@ pyinstaller --onefile yt-mp3.py
 sudo chmod +x install.sh
 sudo ./install.sh
 deactivate
+cd ..
+yt-mp3

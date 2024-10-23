@@ -1,4 +1,4 @@
- 
+
 #!/bin/bash
 exec 2>/dev/null
 # Vérifier si le script est exécuté avec les droits d'administrateur
@@ -16,4 +16,6 @@ tar -xzvf dist.tar.gz
 cp dist/yt-mp3 /usr/local/bin/yt-mp3
 chmod +x /usr/local/bin/yt-mp3
 echo "Installation terminée !"
+cd ..
+sudo rm -rf Yt-mp3
 rm output.log

@@ -12,10 +12,6 @@ echo "Installation de yt-mp3"
 # Installer les dépendances nécessaires
 
 # Copier des fichiers dans les répertoires appropriés
-pip install yt-dlp
-pip install pydub
-pip install pyinstaller
-pyinstaller --onefile yt-mp3.py
 cp dist/yt-mp3 /usr/local/bin/yt-mp3
 chmod +x /usr/local/bin/yt-mp3
 echo "Installation terminée !"

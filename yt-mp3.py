@@ -5,14 +5,45 @@ import yt_dlp
 from pydub import AudioSegment
 import os
 import threading
-
 def browse_folder():
+    # Ouvre l'explorateur de fichiers pour sélectionner un dossier
     initial_dir = os.path.expanduser("~")  # Chemin par défaut au dossier utilisateur
     selected_folder = filedialog.askdirectory(initialdir=initial_dir)
-    if selected_folder:  # Si un dossier est sélectionné
+
+    # Si un dossier est sélectionné
+    if selected_folder:
         folder_entry.delete(0, tk.END)  # Efface l'ancienne entrée
         folder_entry.insert(0, selected_folder)  # Insère le nouveau chemin
 
+def create_new_folder_dialog():
+    # Crée une nouvelle fenêtre contextuelle pour entrer le nom du nouveau dossier
+    new_folder_window = tk.Toplevel(root)
+    new_folder_window.title("Créer un nouveau dossier")
+
+    tk.Label(new_folder_window, text="Nom du nouveau dossier :").pack(padx=10, pady=10)
+    new_folder_name_entry = tk.Entry(new_folder_window)
+    new_folder_name_entry.pack(padx=10, pady=10)
+
+    def create_folder():
+        # Récupère le chemin du dossier sélectionné
+        base_folder = folder_entry.get()
+        new_folder_name = new_folder_name_entry.get().strip()  # Nom du nouveau dossier
+
+        if base_folder and new_folder_name:  # Vérifie si les deux champs sont remplis
+            new_folder_path = os.path.join(base_folder, new_folder_name)
+            try:
+                os.makedirs(new_folder_path, exist_ok=True)  # Crée le nouveau dossier
+                log_console.insert(tk.END, f"Dossier créé : {new_folder_path}\n")
+                folder_entry.delete(0, tk.END)  # Efface l'ancienne entrée
+                folder_entry.insert(0, new_folder_path)  # Insère le chemin du nouveau dossier
+                new_folder_window.destroy()  # Ferme la fenêtre contextuelle
+            except Exception as e:
+                log_console.insert(tk.END, f"Erreur lors de la création du dossier : {str(e)}\n")
+        else:
+            log_console.insert(tk.END, "Erreur : Veuillez sélectionner un dossier et entrer un nom de dossier.\n")
+
+    create_button = tk.Button(new_folder_window, text="Créer", command=create_folder)
+    create_button.pack(padx=10, pady=10)
 def download_and_convert_to_mp3():
     url = url_entry.get()
     if not url:
@@ -92,6 +123,10 @@ folder_frame.pack(pady=5)  # Ajoute un peu d'espace vertical autour du cadre
 
 folder_label = tk.Label(folder_frame, text="Destination :")
 folder_label.grid(row=0, column=0)
+
+# Nouveau bouton pour créer un dossier
+create_button = tk.Button(folder_frame, text="Créer Dossier", command=create_new_folder_dialog)
+create_button.grid(row=0, column=3)
 
 folder_entry = tk.Entry(folder_frame, width=30)  # On diminue la largeur de l'entrée pour laisser de la place au bouton
 folder_entry.grid(row=0, column=1, padx=5)
